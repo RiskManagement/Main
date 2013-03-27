@@ -46,3 +46,37 @@ END
 
 SELECT *
 FROM ##normal
+
+CREATE TABLE ServerIdentifier(
+	ServerID INT IDENTITY(1,1) NOT NULL,
+	ServerName VARCHAR(200) NOT NULL
+)
+
+CREATE TABLE TableIdentifier(
+	TableID INT IDENTITY(1,1) NOT NULL,
+	TableName VARCHAR(200) NOT NULL,
+	ServerID INT NOT NULL
+)
+
+CREATE TABLE #TableRowCount(
+	OrderID BIGINT IDENTITY(1,1),
+	TableID INT NOT NULL,
+	[Catalog] VARCHAR(100),
+	[Row Count] BIGINT,
+	[Change] DECIMAL(5,2),
+	[Timestamp] SMALLDATETIME
+)
+
+INSERT INTO #TableRowCount VALUES (1,'B',500,NULL,'2013-01-01'),(1,'B',750,NULL,'2013-01-02'),(1,'B',1000,NULL,'2013-01-03')
+
+SELECT *
+FROM #TableRowCount 
+
+SELECT t1.*, t2.*
+FROM #TableRowCount t1
+	INNER JOIN #TableRowCount t2 ON t1.TableID = t2.TableID AND t1.OrderID = (t2.OrderID + 1)
+	
+SELECT (t1.[Row Count] - t2.[Row Count])
+FROM #TableRowCount t1
+	INNER JOIN #TableRowCount t2 ON t1.TableID = t2.TableID AND t1.OrderID = (t2.OrderID + 1)
+	
