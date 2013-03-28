@@ -19,6 +19,15 @@ ADD CONSTRAINT FK_TableID
 FOREIGN KEY (TableID) 
 REFERENCES ConnectionStrings(ConnectionID)
 
+-- Stored procedure will begin at approximately this point and should be called every minute
+
+CREATE PROCEDURE sp_CheckTableCounts
+AS
+BEGIN
+
+-- Dirty reads are acceptable
+SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED
+
 -- Checks the row counts of tables listed in the ConnectionString table
 DECLARE @start INT
 SET @start = 1
@@ -60,3 +69,5 @@ SELECT c.ConnectionString AS "Server and Table Name"
 FROM @report t1
 	INNER JOIN @report t2 ON t1.TableID = t2.TableID AND t2.Timestamp = DATEADD(MI,+1,t1.Timestamp)
 	INNER JOIN ConnectionStrings c ON t1.TableID = c.ConnectionID
+
+END
