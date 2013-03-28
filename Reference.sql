@@ -57,7 +57,7 @@ DECLARE @report TABLE(
 	Timestamp SMALLDATETIME
 )
 
--- We only want the last two minutes of row counts
+-- Get the last two minutes of row counts
 INSERT INTO @report
 SELECT *
 FROM TableRowCount
