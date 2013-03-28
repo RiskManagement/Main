@@ -2,22 +2,24 @@ USE TableCheckTool
 GO
 
 CREATE TABLE ConnectionStrings(
-  ConnectionID INT IDENTITY(1,1) PRIMARY KEY,
+	ConnectionID INT IDENTITY(1,1) PRIMARY KEY,
 	ConnectionString VARCHAR(500),
-	CatalogName VARCHAR(500)
+	CategoryName VARCHAR(500)
 )
 
 CREATE TABLE TableRowCount(
-	TableID INT PRIMARY KEY,
+	TableID INT,
 	[Row Count] DECIMAL(20,2),
-	[Timestamp] SMALLDATETIME
+	[Timestamp] SMALLDATETIME DEFAULT getdate()
 )
 
+-- A TableID shouldn't exist if there's no matching ConnectionID
 ALTER TABLE TableRowCount 
 ADD CONSTRAINT FK_TableID
 FOREIGN KEY (TableID) 
 REFERENCES ConnectionStrings(ConnectionID)
 
+-- Checks the row counts of tables listed in the ConnectionString table
 DECLARE @start INT
 SET @start = 1
 DECLARE @total INT 
@@ -46,12 +48,15 @@ DECLARE @report TABLE(
 	Timestamp SMALLDATETIME
 )
 
+-- We only want the last two minutes of row counts
 INSERT INTO @report
 SELECT *
 FROM TableRowCount
-WHERE Timestamp BETWEEN DATEADD(MI,-5,GETDATE()) AND GETDATE()
+WHERE Timestamp BETWEEN DATEADD(MI,-2,GETDATE()) AND GETDATE()
 
-SELECT ((t2.[Row Count]-t1.[Row Count])/(NULLIF(t1.[Row Count],0)))*100 AS "Delta"
+SELECT c.ConnectionString AS "Server and Table Name"
+	,((t2.[Row Count]-t1.[Row Count])/(NULLIF(t1.[Row Count],0)))*100 AS "Delta"
 	,t1.[Row Count], t2.[Row Count], t1.Timestamp, t2.Timestamp
 FROM @report t1
 	INNER JOIN @report t2 ON t1.TableID = t2.TableID AND t2.Timestamp = DATEADD(MI,+1,t1.Timestamp)
+	INNER JOIN ConnectionStrings c ON t1.TableID = c.ConnectionID
