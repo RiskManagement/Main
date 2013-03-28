@@ -39,7 +39,7 @@ BEGIN
 	SET @start = @start + 1
 END
 
--- Reporting:
+-- Reporting on the row count change:
 DECLARE @report TABLE(
 	TableID INT,
 	[Row Count] DECIMAL(20,2),
