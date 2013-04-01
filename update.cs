@@ -1,3 +1,10 @@
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Text;
+using System.Windows.Forms;
+using System.Data.SqlClient;
+
             con.Open();
             SqlCommand myCom = new SqlCommand("UPDATE ConnectionStrings SET Servername = @v1, DatabaseName = @v2, SchemaName = @v3, TableName = @v4 WHERE ConnectionID = @v5", con);
             myCom.Parameters.Add(new SqlParameter("@v1", Convert.String(txt1.Text)));
