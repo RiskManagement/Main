@@ -120,14 +120,13 @@ BEGIN
 	SET @start = @start + 1
 END
 
--- Reporting on the row count change:
+-- Reporting on the row count change by percent:
 DECLARE @report TABLE(
 	TableID INT,
 	[Row Count] DECIMAL(20,2),
 	Timestamp SMALLDATETIME
 )
 
--- Get the last two minutes of row counts
 INSERT INTO @report
 SELECT *
 FROM TableRowCount
@@ -142,8 +141,7 @@ FROM @report t1
 
 END
 
--- Will show the row counts by Table ID and date (pivotting data)
-
+-- Reporting on the row count pivotting the date and table id
 SELECT [Timestamp],
 [1],[2],[3]
 FROM (SELECT TableID, [Row Count], TimeStamp FROM TableRowCount) AS SourceTable
@@ -153,5 +151,30 @@ SUM([Row Count])
 FOR TableID IN ([1],[2],[3]))
 AS PivotTable;
 
+-- Reporting on the row count by showing the former count, the current count and if it's equal
+-- Report table
+DECLARE @report TABLE(
+	TableID INT,
+	[Row Count] BIGINT,
+	RowDate SMALLDATETIME DEFAULT GETDATE()
+)
+
+INSERT INTO @report
+SELECT *
+FROM TableRowCount
+WHERE Timestamp BETWEEN DATEADD(MI,-2,GETDATE()) AND GETDATE()
+
+SELECT c.ConnectionString
+	, t2.[Row Count] AS PreviousRowCount
+	, t1.[Row Count] AS CurrentRowCount
+	, CASE WHEN t2.[Row Count] = t1.[Row Count] THEN 'Equal'
+		WHEN t2.[Row Count] > t1.[Row Count] THEN 'Decreased'
+		WHEN t2.[Row Count] < t1.[Row Count] THEN 'Increased'
+		END AS [Status]
+FROM @report t1
+	INNER JOIN @report t2 ON t1.TableID = t2.TableID
+	INNER JOIN ConnectionStrings c ON t1.TableID = c.ConnectionID 
+WHERE t1.RowDate BETWEEN DATEADD(MI,-1,GETDATE()) AND GETDATE()
+	AND t2.RowDate BETWEEN DATEADD(MI,-2,GETDATE()) AND DATEADD(MI,-1,GETDATE())
 
 */
