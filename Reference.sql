@@ -142,4 +142,16 @@ FROM @report t1
 
 END
 
+-- Will show the row counts by Table ID and date (pivotting data)
+
+SELECT [Timestamp],
+[1],[2],[3]
+FROM (SELECT TableID, [Row Count], TimeStamp FROM TableRowCount) AS SourceTable
+PIVOT
+(
+SUM([Row Count])
+FOR TableID IN ([1],[2],[3]))
+AS PivotTable;
+
+
 */
